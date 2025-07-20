@@ -14,22 +14,20 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
   release:
     needs: test
     runs-on: ubuntu-latest
     if: success()
-    
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up GitHub CLI
-        uses: cli/cli-action@v2
 
       - name: Create Extension ZIP
         run: |
@@ -39,17 +37,14 @@ jobs:
           -x ".github/*" \
           -x "*.md"
 
-      - name: Create GitHub Release
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            extension.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: |
-          gh release create "${GITHUB_REF##*/}" \
-            --title "Release ${GITHUB_REF##*/}" \
-            --notes "" \
-            --verify-tag
-
-      - name: Upload Release Asset
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: |
-          gh release upload "${GITHUB_REF##*/}" extension.zip#back-to-search-results.zip --clobber
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
