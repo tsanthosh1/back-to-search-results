@@ -14,17 +14,22 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
   release:
     needs: test
     runs-on: ubuntu-latest
     if: success()
+    
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up GitHub CLI
+        uses: cli/cli-action@v2
 
       - name: Create Extension ZIP
         run: |
@@ -32,23 +37,19 @@ jobs:
           -x "images/*" \
           -x ".git/*" \
           -x ".github/*" \
-          -x "*.md" \
+          -x "*.md"
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
+      - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./extension.zip
-          asset_name: back-to-search-results.zip
-          asset_content_type: application/zip
+        run: |
+          gh release create "${GITHUB_REF##*/}" \
+            --title "Release ${GITHUB_REF##*/}" \
+            --notes "" \
+            --verify-tag
+
+      - name: Upload Release Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          gh release upload "${GITHUB_REF##*/}" extension.zip#back-to-search-results.zip --clobber
