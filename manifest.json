@@ -21,7 +21,6 @@
     }
   },
   "action": {
-    "default_popup": "popup.html",
     "default_title": "Back to Search Results"
   },
   "icons": {

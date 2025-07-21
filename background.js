@@ -176,10 +176,8 @@ setInterval(() => {
     }
 }, 30000); // Every 30 seconds
 
-// Handle shortcut
-chrome.commands.onCommand.addListener(async (command) => {
-    if (command !== 'back-to-search') return;
-
+// Handle shortcut and icon click with shared function
+async function performBackToSearch() {
     try {
         const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
         const currentDomain = new URL(currentTab.url).hostname;
@@ -217,6 +215,17 @@ chrome.commands.onCommand.addListener(async (command) => {
     } catch (err) {
         console.error('Error in back-to-search:', err);
     }
+}
+
+// Handle keyboard shortcut
+chrome.commands.onCommand.addListener(async (command) => {
+    if (command !== 'back-to-search') return;
+    await performBackToSearch();
+});
+
+// Handle extension icon click
+chrome.action.onClicked.addListener(async (tab) => {
+    await performBackToSearch();
 });
 
 chrome.runtime.onInstalled.addListener(() => {
