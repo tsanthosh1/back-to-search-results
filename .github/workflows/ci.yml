@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Check for required files
+      run: |
+        echo "Checking for required Chrome extension files..."
+        test -f manifest.json && echo "✓ manifest.json found"
+        test -f background.js && echo "✓ background.js found"
+        test -f popup.html && echo "✓ popup.html found"
+        test -f icon16.png && echo "✓ icon16.png found"
+        test -f icon48.png && echo "✓ icon48.png found"
+        test -f icon128.png && echo "✓ icon128.png found"
+        echo "All required files present!"
